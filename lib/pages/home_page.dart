@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     List<Pet> pets = Provider.of<PetsProvider>(context).pets;
@@ -34,16 +35,32 @@ class HomePage extends StatelessWidget {
               },
               child: const Text("GET"),
             ),
-            GridView.builder(
-                shrinkWrap: true,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: MediaQuery.of(context).size.width /
-                      (MediaQuery.of(context).size.height),
-                ),
-                physics: const NeverScrollableScrollPhysics(), // <- Here
-                itemCount: pets.length,
-                itemBuilder: (context, index) => PetCard(pet: pets[index])),
+            FutureBuilder<List<Pet>>(
+              future:
+                  Provider.of<PetsProvider>(context, listen: false).getPets(),
+              builder: (context, dataSnapshot) {
+                if (dataSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (dataSnapshot.hasError) {
+                  return Center(child: Text('Error: ${dataSnapshot.error}'));
+                } else if (dataSnapshot.hasData) {
+                  List<Pet> pets = dataSnapshot.data!;
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: MediaQuery.of(context).size.width /
+                          (MediaQuery.of(context).size.height),
+                    ),
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: pets.length,
+                    itemBuilder: (context, index) => PetCard(pet: pets[index]),
+                  );
+                } else {
+                  return const Center(child: Text('No pets available'));
+                }
+              },
+            ),
           ],
         ),
       ),
