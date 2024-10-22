@@ -46,6 +46,11 @@ class PetCard extends StatelessWidget {
                           ))
                     ],
                   ),
+                  IconButton(
+                      onPressed: () {
+                        GoRouter.of(context).push('/update/${pet.id}');
+                      },
+                      icon: const Icon(Icons.edit)),
                 ],
               ),
             ),

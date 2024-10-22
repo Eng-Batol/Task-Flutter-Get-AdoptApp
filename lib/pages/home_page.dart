@@ -1,4 +1,4 @@
-import 'package:adopt_app/models/pet.dart';
+// import 'package:adopt_app/models/pet.dart';
 import 'package:adopt_app/providers/pets_provider.dart';
 import 'package:adopt_app/widgets/pet_card.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Pet> pets = Provider.of<PetsProvider>(context).pets;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Pet Adopt"),
@@ -22,7 +21,10 @@ class HomePage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Updated navigation to match reference code
+                  GoRouter.of(context).push('/add');
+                },
                 child: const Padding(
                   padding: EdgeInsets.all(12.0),
                   child: Text("Add a new Pet"),
@@ -35,29 +37,35 @@ class HomePage extends StatelessWidget {
               },
               child: const Text("GET"),
             ),
-            FutureBuilder<List<Pet>>(
+            FutureBuilder(
               future:
                   Provider.of<PetsProvider>(context, listen: false).getPets(),
               builder: (context, dataSnapshot) {
                 if (dataSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (dataSnapshot.hasError) {
-                  return Center(child: Text('Error: ${dataSnapshot.error}'));
-                } else if (dataSnapshot.hasData) {
-                  List<Pet> pets = dataSnapshot.data!;
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: MediaQuery.of(context).size.width /
-                          (MediaQuery.of(context).size.height),
-                    ),
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: pets.length,
-                    itemBuilder: (context, index) => PetCard(pet: pets[index]),
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (dataSnapshot.error != null) {
+                  return const Center(
+                    child:
+                        Text('An error occurred'), // Simplified error handling
                   );
                 } else {
-                  return const Center(child: Text('No pets available'));
+                  // Use Consumer to listen for changes in pets data
+                  return Consumer<PetsProvider>(
+                    builder: (context, petsProvider, child) => GridView.builder(
+                      shrinkWrap: true,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: MediaQuery.of(context).size.width /
+                            (MediaQuery.of(context).size.height),
+                      ),
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: petsProvider.pets.length,
+                      itemBuilder: (context, index) =>
+                          PetCard(pet: petsProvider.pets[index]),
+                    ),
+                  );
                 }
               },
             ),
